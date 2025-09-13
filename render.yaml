@@ -18,7 +18,3 @@ services:
         sync: false
     healthCheckPath: /health/
     autoDeploy: true
-
-  - type: pserv
-    name: ddl-backend-db
-    plan: free
