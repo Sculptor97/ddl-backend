@@ -21,6 +21,4 @@ services:
 
   - type: pserv
     name: ddl-backend-db
-    env: postgresql
     plan: free
-    ipAllowList: []
