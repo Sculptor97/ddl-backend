@@ -93,11 +93,11 @@ def _get_mapbox_route(current: Tuple[float, float], pickup: Tuple[float, float],
                 'geometry': route['geometry']
             }
         else:
-            print("❌ No routes found in Mapbox response")
+            print("No routes found in Mapbox response")
             return _get_mock_route(current, pickup, dropoff)
             
     except Exception as e:
-        print(f"❌ Mapbox API error: {e}")
+        print(f"Mapbox API error: {e}")
         print(f"   Error type: {type(e).__name__}")
         return _get_mock_route(current, pickup, dropoff)
 
