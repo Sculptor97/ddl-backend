@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: ddl-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: gunicorn backend.wsgi:application
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: false
+      - key: ORS_API_KEY
+        sync: false
+      - key: MAPBOX_ACCESS_TOKEN
+        sync: false
+    healthCheckPath: /health/
+    autoDeploy: true
+
+  - type: pserv
+    name: ddl-backend-db
+    env: postgresql
+    plan: free
+    ipAllowList: []
