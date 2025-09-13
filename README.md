@@ -1,79 +1,71 @@
-# HOS Trip Planner
+# DDL Backend - HOS Trip Planner API
 
-A full-stack web application for planning trucking trips with Hours of Service (HOS) compliance, implementing FMCSA regulations.
+A Django REST API backend for planning trucking trips with Hours of Service (HOS) compliance, implementing FMCSA regulations.
 
 ## Tech Stack
 
 - **Backend**: Python 3.11+, Django, Django REST Framework
 - **Dependency Manager**: pipenv (always latest versions)
-- **Database**: PostgreSQL with psycopg
-- **Frontend**: Vite + React + TypeScript
-- **Maps**: Leaflet with OpenStreetMap tiles
-- **HTTP Client**: axios (frontend), requests (backend)
+- **Database**: SQLite (development) / PostgreSQL (production)
+- **Deployment**: Render (with free tier support)
+- **HTTP Client**: requests
+- **External APIs**: OpenRouteService, Mapbox
 
 ## Project Structure
 
 ```
 ddl-backend/
-├── backend/                 # Django backend
-│   ├── backend/            # Django project settings
-│   ├── trips/              # Django app
-│   │   ├── models.py       # Driver and DailyRod models
-│   │   ├── views.py        # API endpoints
-│   │   ├── serializers.py  # DRF serializers
-│   │   ├── urls.py         # URL routing
-│   │   ├── admin.py        # Django admin
-│   │   ├── ors_client.py   # OpenRouteService client
-│   │   └── hos.py          # HOS scheduler
-│   ├── manage.py
-│   └── env.example         # Environment variables template
-├── frontend/               # React frontend
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── MapView.tsx # Interactive map component
-│   │   │   └── LogSheet.tsx # HOS log visualization
-│   │   ├── App.tsx         # Main application
-│   │   ├── main.tsx        # React entry point
-│   │   └── index.css       # Global styles
-│   ├── package.json
-│   ├── vite.config.ts
-│   └── env.example         # Frontend environment template
-├── Pipfile                 # Python dependencies
+├── backend/                 # Django project settings
+│   ├── settings.py         # Django configuration
+│   ├── urls.py             # Main URL routing
+│   ├── wsgi.py             # WSGI configuration
+│   └── asgi.py             # ASGI configuration
+├── trips/                  # Django app
+│   ├── models.py           # Driver and DailyRod models
+│   ├── views.py            # API endpoints
+│   ├── serializers.py      # DRF serializers
+│   ├── urls.py             # App URL routing
+│   ├── admin.py            # Django admin
+│   ├── ors_client.py       # OpenRouteService client
+│   └── hos.py              # HOS scheduler
+├── manage.py               # Django management script
+├── requirements.txt        # Python dependencies
+├── Pipfile                 # Pipenv dependencies
+├── Procfile                # Render deployment config
+├── render.yaml             # Render blueprint config
+├── env.example             # Environment variables template
+├── deploy.sh               # Deployment script
+├── RENDER_DEPLOYMENT.md    # Render deployment guide
 └── README.md
 ```
 
 ## Features
 
-### Backend Features
 - **HOS Compliance**: Implements FMCSA regulations including:
   - 11-hour maximum driving per day
   - 14-hour on-duty window
   - 30-minute break after 8 hours driving
   - 70-hour maximum in rolling 8 days
   - 34-hour restart when needed
-- **Route Planning**: Integration with OpenRouteService API (with mock fallback)
+- **Route Planning**: Integration with OpenRouteService API for real-time routing
 - **Driver Management**: Track drivers and their HOS records
 - **RESTful API**: Clean API endpoints for trip planning
-
-### Frontend Features
-- **Interactive Map**: Visualize routes with waypoint markers
-- **HOS Log Sheet**: Color-coded 24-hour grid showing duty status
-- **Responsive Design**: Works on desktop and mobile devices
-- **Real-time Planning**: Instant trip planning with HOS compliance
+- **Health Monitoring**: Built-in health check endpoint
+- **Production Ready**: Configured for deployment on Render
 
 ## Setup Instructions
 
 ### Prerequisites
 - Python 3.11+
-- Node.js 18+
-- PostgreSQL database
 - pipenv (install with `pip install pipenv`)
+- Git repository access
 
-### Backend Setup
+### Local Development Setup
 
-1. **Navigate to backend directory**:
+1. **Clone the repository**:
    ```bash
-   cd backend
+   git clone <repository-url>
+   cd ddl-backend
    ```
 
 2. **Install Python dependencies**:
@@ -86,61 +78,34 @@ ddl-backend/
    ```bash
    cp env.example .env
    ```
-   Edit `.env` with your database credentials and API keys:
+   Edit `.env` with your API keys:
    ```
    DJANGO_SECRET_KEY=your-secret-key-here
-   DATABASE_URL=postgres://username:password@localhost:5432/hos_trip_planner
    ORS_API_KEY=your-openroute-service-api-key
+   MAPBOX_ACCESS_TOKEN=your-mapbox-access-token
+   DEBUG=True
+   ENVIRONMENT=development
    ```
 
-4. **Set up PostgreSQL database**:
-   ```sql
-   CREATE DATABASE hos_trip_planner;
-   ```
-
-5. **Run Django migrations**:
+4. **Run Django migrations**:
    ```bash
-   python manage.py makemigrations
    python manage.py migrate
    ```
 
-6. **Create superuser (optional)**:
+5. **Create superuser (optional)**:
    ```bash
    python manage.py createsuperuser
    ```
 
-7. **Start Django development server**:
+6. **Start Django development server**:
    ```bash
    python manage.py runserver
    ```
-   Backend will be available at `http://localhost:8000`
+   API will be available at `http://localhost:8000`
 
-### Frontend Setup
+### Production Deployment
 
-1. **Navigate to frontend directory**:
-   ```bash
-   cd frontend
-   ```
-
-2. **Install Node.js dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**:
-   ```bash
-   cp env.example .env
-   ```
-   Edit `.env` if needed (default should work):
-   ```
-   VITE_API_URL=http://localhost:8000/api
-   ```
-
-4. **Start development server**:
-   ```bash
-   npm run dev
-   ```
-   Frontend will be available at `http://localhost:3000`
+For production deployment on Render, see the detailed [Render Deployment Guide](RENDER_DEPLOYMENT.md).
 
 ## API Usage
 
@@ -226,40 +191,42 @@ ddl-backend/
 
 ## Development
 
-### Backend Development
-- Django admin available at `/admin/`
-- API documentation available at `/api/`
-- Use `python manage.py shell` for database exploration
+### API Endpoints
+- **Health Check**: `GET /health/` - Service health status
+- **Admin Panel**: `GET /admin/` - Django admin interface
+- **API Base**: `GET /api/` - API endpoints
+- **Plan Trip**: `POST /api/plan-trip/` - Main trip planning endpoint
 
-### Frontend Development
-- Hot reload enabled in development
-- TypeScript strict mode enabled
-- ESLint configured for code quality
+### Development Tools
+- Django admin available at `/admin/`
+- Use `python manage.py shell` for database exploration
+- Logs available in `logs/django.log` (local development)
 
 ### Testing
 ```bash
-# Backend tests
-cd backend
+# Run Django tests
 python manage.py test
 
-# Frontend tests
-cd frontend
-npm test
+# Check deployment configuration
+python manage.py check --deploy
 ```
 
-## Deployment
+## API Documentation
 
-### Backend Deployment
-1. Set `DEBUG=False` in production
-2. Configure proper `ALLOWED_HOSTS`
-3. Use production database
-4. Set up static file serving
-5. Configure CORS for production domain
+### Available Endpoints
 
-### Frontend Deployment
-1. Build production bundle: `npm run build`
-2. Serve static files from `dist/` directory
-3. Configure API URL for production backend
+- **`GET /health/`** - Health check endpoint
+- **`GET /admin/`** - Django admin interface
+- **`GET /api/drivers/`** - List all drivers
+- **`GET /api/drivers/{id}/logs/`** - Get driver HOS logs
+- **`POST /api/plan-trip/`** - Plan a trip with HOS compliance
+
+### Authentication
+
+Currently, the API is open for development. For production use, consider implementing:
+- API key authentication
+- JWT tokens
+- OAuth2 integration
 
 ## Contributing
 
